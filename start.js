@@ -253,9 +253,89 @@ const viewRoles = () => {
 }
 
 const viewEmplyees = () => {
-  connection.query("SELECT * FROM employee", function(err, res) {
+
+  var query = "SELECT employee.first_name, employee.last_name, role.title, department.name, role.salary ";
+  query += "FROM employee INNER JOIN role ON (employee.role_id = role.id) INNER JOIN department ON (role.department_id = department.id) ";
+  query += "ORDER BY employee.id";
+
+  // INNER JOIN department ON (role.department_id = department.id)
+
+  connection.query(query, function(err, res) {
     if (err) throw err;
   console.table(res);
  runApp();
   });
 }
+
+const updateRoles = () => {
+  connection.query("SELECT first_name, last_name FROM employee", function(err, res) {
+    if (err) throw err;
+    var employees = [];
+    for (var i = 0; i <res.length; i++) {
+      const firstNames = res[i].first_name;
+      const lastName = res[i].last_name;
+      console.log(firstNames);
+      console.log(lastName);
+      employees.push(firstNames + "," + lastName);
+    }
+
+    connection.query("SELECT title FROM role", function(err, res2) {
+      if (err) throw err;
+      var roles = [];
+      for (var i = 0; i <res2.length; i++) {
+      roles.push(res2[i].title);
+      }
+
+
+    inquirer
+    .prompt([{
+          name: "roleChangeEmp",
+          type: "list",
+          message: "Witch Employee's Role Do you need to update ?",
+          choices: employees
+      },{
+        name: "role",
+        type: "list",
+        message: "what is his/her new Role?",
+        choices: roles
+      }
+      
+    ])
+    .then(function(answer) {
+
+      var roleId;
+      const job = answer.role
+      const selectedEmp = (answer.roleChangeEmp).split(",");
+    // var mangerId;
+
+      const getRoleID = () => {
+          const query = "SELECT id FROM role WHERE title = ? ";
+          connection.query(query, job , (err, res) => {
+              if (err) throw err;  
+              roleId = parseInt(res[0].id)
+              newRole()
+            });
+            }
+      
+      console.log(selectedEmp[0])
+
+      const newRole = () => {
+        const query = "UPDATE employee SET role_id = ? WHERE first_name = ? AND last_name = ?";
+      connection.query(query,[ roleID , selectedEmp[0] , selectedEmp[1]], (err, res) => {
+          if (err) throw "err";
+          console.log(`Role of ${answer.roleChangeEmp} has been updated Sucessfully`)
+          runApp();
+        });
+
+        getRoleID()
+    }});
+  
+  });
+  
+})};
+
+
+
+// match role = role_id
+// match role = department_id
+// table create ...
