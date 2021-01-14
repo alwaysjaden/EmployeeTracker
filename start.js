@@ -48,7 +48,7 @@ function runApp() {
             break;
 
         case "Add Employees":
-            addEmployee();
+          addEmployee();
             break;
 
         case "View Department":
@@ -84,20 +84,26 @@ function addDepartment() {
         "Engineering",
         "Finance",
         "Legal",
-        "Human Resource",
+        "HR",
         "Administrator",
-        "Back to Beginning"
+        "Back"
       ]
     })
     .then(function(answer) {
+
+    
        
       const departmentName = [`${answer.deparmentName}`]
+      if (departmentName === "Back") {
+        runApp();
+      }
       const query = "INSERT INTO department (name) VALUES (?)";
       connection.query(query, departmentName , function(err, res) {
         if (err) throw err;
         runApp();
       });
     });
+
    
 }
 
@@ -117,8 +123,7 @@ function addRole() {
             "Legal Associate",
             "Human Resource Manager",
             "Human Resource Associate",
-            "Administrator",
-            "Back to Beginning"
+            "Administrator"
             ]
         },{
             name: "salary",
@@ -127,27 +132,26 @@ function addRole() {
         }
     ])
       .then(function(answer) {
-
+        
        const job = answer.title;
+       console.log(job);
        const jobDescription = job.split(" ").join("");
-
-       console.log(jobDescription)
        var jobTitle;
         if (jobDescription === "SalesLead" || jobDescription === "Salesperson") {
              jobTitle = "Sales"
             } 
-            else if (jobDescription === "Senior Engineer" || jobDescription ==="Junior Engineer"){
+            else if (jobDescription === "SeniorEngineer" || jobDescription ==="JuniorEngineer"){
                jobTitle = "Engineering"
               return jobTitle
-            } else if (jobDescription === "Head of Legal" || jobDescription === "Legal Associate"){
-               jobTitle =  "Finance"
-            } else if (jobDescription === "Finance Manager" || jobDescription=== "Finance Associate"){
-               jobTitle = "Legal"
-            } else if (jobDescription=== "Human Resource Manager" || jobDescription === "Human Resource Associate"){
-               jobTitle = "Human Resource"
+            } else if (jobDescription === "HeadofLegal" || jobDescription === "LegalAssociate"){
+               jobTitle =  "Legal"
+            } else if (jobDescription === "FinanceManager" || jobDescription=== "FinanceAssociate"){
+               jobTitle = "Finance"
+            } else if (jobDescription=== "HumanResourceManager" || jobDescription === "HumanResourceAssociate"){
+               jobTitle = "HR"
             } else if (jobDescription === "Administrator" ){
                jobTitle = "Administrator"
-            }
+            } 
        
       console.log(jobTitle);
 
@@ -172,3 +176,69 @@ function roleDataInput() {
     getDepartmentId()
   })
 }
+
+
+
+function addEmployee() {
+
+  // var employeeRoles =[];
+
+  connection.query("SELECT title FROM role", function(err, res) {
+    if (err) throw err;
+    var roles = [];
+    for (var i = 0; i <res.length; i++) {
+    roles.push(res[i].title);
+    }
+    inquirer
+    .prompt([{
+          name: "firstName",
+          type: "prompt",
+          message: "What is Employee's First Name ? "
+      },{
+          name: "lastName",
+          type: "input",
+          message: "What is Employee's Last Name ? "
+      },{
+        name: "role",
+        type: "list",
+        choices: roles
+      }
+      // {
+      //   name: "Manager",
+      //   type: "input",
+      //   choices: [    ]
+      // }
+  ])
+    .then(function(answer) {
+
+    var roleId;
+    // var mangerId;
+
+    function getRoleID() {
+          const query = "SELECT id FROM role WHERE title = ? ";
+          connection.query(query, job , (err, res) => {
+              if (err) throw err;  
+              console.log(res[0].id) 
+              roleId = parseInt(res[0].id)
+              employeeDataInput()
+            });
+            }
+
+
+
+    function employeeDataInput() {
+          const roleInputs = [`${answer.firstName}`,`${answer.lastName}`,`${roleId}`,"1"]
+          const query = "INSERT INTO employee (first_name,last_name,role_id,manager_id) VALUES (?,?,?,?)";
+          connection.query(query, roleInputs , function(err, res) {
+            if (err) throw err;
+            runApp();
+          });
+          } 
+          getRoleID()
+  })
+
+  });
+
+}
+
+
