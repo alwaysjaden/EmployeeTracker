@@ -20,7 +20,7 @@ connection.connect(function(err) {
   runApp();
 });
 
-function runApp() {
+const runApp = () => {
   inquirer
     .prompt({
       name: "action",
@@ -74,7 +74,7 @@ function runApp() {
     });
 }
 
-function addDepartment() {
+const addDepartment = () => {
   inquirer
     .prompt({
       name: "deparmentName",
@@ -90,9 +90,7 @@ function addDepartment() {
       ]
     })
     .then(function(answer) {
-
-    
-       
+     
       const departmentName = [`${answer.deparmentName}`]
       if (departmentName === "Back") {
         runApp();
@@ -104,10 +102,9 @@ function addDepartment() {
       });
     });
 
-   
 }
 
-function addRole() {
+const addRole = () => {
     inquirer
       .prompt([{
             name: "title",
@@ -178,10 +175,7 @@ function roleDataInput() {
 }
 
 
-
-function addEmployee() {
-
-  // var employeeRoles =[];
+const addEmployee = () => {
 
   connection.query("SELECT title FROM role", function(err, res) {
     if (err) throw err;
@@ -242,3 +236,26 @@ function addEmployee() {
 }
 
 
+const viewDepartment = () => {
+  connection.query("SELECT * FROM department", function(err, res) {
+    if (err) throw err;
+  console.table(res);
+ runApp();
+  });
+}
+
+const viewRoles = () => {
+  connection.query("SELECT * FROM role", function(err, res) {
+    if (err) throw err;
+  console.table(res);
+ runApp();
+  });
+}
+
+const viewEmplyees = () => {
+  connection.query("SELECT * FROM employee", function(err, res) {
+    if (err) throw err;
+  console.table(res);
+ runApp();
+  });
+}
