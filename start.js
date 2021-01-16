@@ -34,6 +34,9 @@ const runApp = () => {
         "View Roles",
         "View Employees",
         "Update employee roles",
+        "Delete Deparment",
+        "Delete Role",
+        "Delete Employee",
         "exit"
       ]
     })
@@ -66,6 +69,15 @@ const runApp = () => {
         case "Update employee roles":
               updateRoles();
               break;
+        // case "Delete Deparment":
+        //       deleteDepartment();
+        //       break;
+        // case "Delete Role":
+        //       deleteRole();
+        //       break;
+        // case "Delete Employee":
+        //       deleteEmployee();
+        //       break;
 
       case "exit":
         connection.end();
@@ -96,7 +108,7 @@ const addDepartment = () => {
         runApp();
       }
       const query = "INSERT INTO department (name) VALUES (?)";
-      connection.query(query, departmentName , function(err, res) {
+      connection.query(query, departmentName , (err, res) => {
         if (err) throw err;
         runApp();
       });
@@ -121,7 +133,6 @@ const addRole = () => {
             "Human Resource Manager",
             "Human Resource Associate",
             "Administrator",
-            "Back"
             ]
         },{
             name: "salary",
@@ -131,17 +142,17 @@ const addRole = () => {
     ])
       .then(function(answer) {
         
+
        const job = answer.title;
        const jobDescription = job.split(" ").join("");
       //  console.log(jobDescription)
        var jobTitle;
         
-       function getJobDescription() {
-        if (jobDescription === "SalesLead" || jobDescription === "Salesperson") {
+      //  function getJobDescription() {
+          if (jobDescription === "SalesLead" || jobDescription === "Salesperson") {
              jobTitle = "Sales";
              getDepartmentId();
-            } 
-            else if (jobDescription === "SeniorEngineer" || jobDescription ==="JuniorEngineer"){
+            } else if (jobDescription === "SeniorEngineer" || jobDescription ==="JuniorEngineer"){
                jobTitle = "Engineering";
                getDepartmentId();
             } else if (jobDescription === "HeadofLegal" || jobDescription === "LegalAssociate"){
@@ -157,38 +168,31 @@ const addRole = () => {
                jobTitle = "Admin";
                getDepartmentId()
             } 
-          }
+          // }
           
         var jobId;
         function getDepartmentId() {
-          console.log(jobTitle)
               const query = "SELECT id FROM department WHERE name = ? ";
               connection.query(query, jobTitle , (err, res) => {
-                  if (err) throw err;  
-                  console.log(res[0].id) 
-                  jobId = res[0].id
-                  roleDataInput()
+                  if (err) throw err;                 
+                  console.log(res[0].id); 
+                  jobId = res[0].id;
+                  roleDataInput();
                 });
               };
 
-            function roleDataInput() {
+        function roleDataInput() {
                 const roleInputs = [`${answer.title}`,`${parseInt(answer.salary)}`,`${jobId}`]
                 const query = "INSERT INTO role (title,salary,department_id) VALUES (?,?,?)";
-                connection.query(query, roleInputs , function(err, res) {
+                connection.query(query, roleInputs , (err, res) => {
                   if (err) throw err;
                   console.log(" New Role has been Created")
                   runApp();
                 });
               }; 
-
-              getJobDescription()
-    
   });
 }
-
-
 const addEmployee = () => {
-
   connection.query("SELECT title FROM role", function(err, res) {
     if (err) throw err;
     
@@ -211,11 +215,6 @@ const addEmployee = () => {
         type: "list",
         choices: roles
       }
-      // {
-      //   name: "Manager",
-      //   type: "input",
-      //   choices: [    ]
-      // }
   ])
     .then(function(answer) {
 
@@ -231,13 +230,10 @@ const addEmployee = () => {
               employeeDataInput()
             });
             }
-
-
-
     function employeeDataInput() {
           const roleInputs = [`${answer.firstName}`,`${answer.lastName}`,`${roleId}`,"1"]
           const query = "INSERT INTO employee (first_name,last_name,role_id,manager_id) VALUES (?,?,?,?)";
-          connection.query(query, roleInputs , function(err, res) {
+          connection.query(query, roleInputs , (err, res) => {
             if (err) throw err;
             console.log(" New Employee has been Added")
             runApp();
@@ -249,50 +245,50 @@ const addEmployee = () => {
 }
 
 
-const viewDepartment = () => {
-  connection.query("SELECT * FROM department", function(err, res) {
-    if (err) throw err;
-    const array = res
-    const transformed = array.reduce((acc, {id, ...x}) => { acc[id] = x; return acc}, {})
-    console.table(transformed);
-  // console.table(res);
+  const viewDepartment = () => {
+    connection.query("SELECT * FROM department", function(err, res) {
+      if (err) throw err;
+      const array = res
+      const transformed = array.reduce((acc, {id, ...x}) => { acc[id] = x; return acc}, {})
+      console.table(transformed);
+    // console.table(res);
 
-  runApp();
-  });
-}
+    runApp();
+    });
+  }
 
-const viewRoles = () => {
-  connection.query("SELECT * FROM role", function(err, res) {
-    if (err) throw err;
-    const array = res;
-    const transformed = array.reduce((acc, {id, ...x}) => { acc[id] = x; return acc}, {})
-    console.table(transformed);
-  // console.table(res);
-  runApp();
-  });
-}
+  const viewRoles = () => {
+    connection.query("SELECT * FROM role", function(err, res) {
+      if (err) throw err;
+      const array = res;
+      const transformed = array.reduce((acc, {id, ...x}) => { acc[id] = x; return acc}, {})
+      console.table(transformed);
+    // console.table(res);
+    runApp();
+    });
+  }
 
-const viewEmplyees = () => {
+  const viewEmplyees = () => {
 
-  var query = "SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name, role.salary ";
-  query += "FROM employee INNER JOIN role ON (employee.role_id = role.id) INNER JOIN department ON (role.department_id = department.id) ";
-  query += "ORDER BY employee.id";
+    var query = "SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name, role.salary ";
+    query += "FROM employee INNER JOIN role ON (employee.role_id = role.id) INNER JOIN department ON (role.department_id = department.id) ";
+    query += "ORDER BY employee.id";
 
-  // INNER JOIN department ON (role.department_id = department.id)
+    // INNER JOIN department ON (role.department_id = department.id)
 
-  connection.query(query, function(err, res) {
-    if (err) throw err;
-    const array = res;
-    const transformed = array.reduce((acc, {id, ...x}) => { acc[id] = x; return acc}, {})
-    console.table(transformed);
-  // console.table(res);
-  
-  runApp();
-  });
+    connection.query(query, (err, res) => {
+      if (err) throw err;
+      const array = res;
+      const transformed = array.reduce((acc, {id, ...x}) => { acc[id] = x; return acc}, {})
+      console.table(transformed);
+    // console.table(res);
+    
+    runApp();
+    });
 }
 
 const updateRoles = () => {
-  connection.query("SELECT first_name, last_name FROM employee", function(err, res) {
+  connection.query("SELECT first_name, last_name FROM employee", (err, res) => {
     if (err) throw err;
     var employees = [];
     for (var i = 0; i <res.length; i++) {
@@ -301,7 +297,7 @@ const updateRoles = () => {
       employees.push(firstNames + "," + lastName);
       }
 
-  connection.query("SELECT title FROM role", function(err, res2) {
+  connection.query("SELECT title FROM role", (err, res2) => {
     if (err) throw err;
     var roles = [];
     for (var i = 0; i <res2.length; i++) {
