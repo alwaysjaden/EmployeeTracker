@@ -63,9 +63,9 @@ const runApp = () => {
             viewEmplyees();
             break;
 
-      case "Update employee roles":
-            updateRoles();
-            break;
+        case "Update employee roles":
+              updateRoles();
+              break;
 
       case "exit":
         connection.end();
@@ -85,7 +85,7 @@ const addDepartment = () => {
         "Finance",
         "Legal",
         "HR",
-        "Administrator",
+        "Admin",
         "Back"
       ]
     })
@@ -120,7 +120,8 @@ const addRole = () => {
             "Legal Associate",
             "Human Resource Manager",
             "Human Resource Associate",
-            "Administrator"
+            "Administrator",
+            "Back"
             ]
         },{
             name: "salary",
@@ -131,47 +132,58 @@ const addRole = () => {
       .then(function(answer) {
         
        const job = answer.title;
-       console.log(job);
        const jobDescription = job.split(" ").join("");
+      //  console.log(jobDescription)
        var jobTitle;
+        
+       function getJobDescription() {
         if (jobDescription === "SalesLead" || jobDescription === "Salesperson") {
-             jobTitle = "Sales"
+             jobTitle = "Sales";
+             getDepartmentId();
             } 
             else if (jobDescription === "SeniorEngineer" || jobDescription ==="JuniorEngineer"){
-               jobTitle = "Engineering"
-              return jobTitle
+               jobTitle = "Engineering";
+               getDepartmentId();
             } else if (jobDescription === "HeadofLegal" || jobDescription === "LegalAssociate"){
-               jobTitle =  "Legal"
+               jobTitle =  "Legal";
+               getDepartmentId()
             } else if (jobDescription === "FinanceManager" || jobDescription=== "FinanceAssociate"){
-               jobTitle = "Finance"
+               jobTitle = "Finance";
+               getDepartmentId()
             } else if (jobDescription=== "HumanResourceManager" || jobDescription === "HumanResourceAssociate"){
-               jobTitle = "HR"
+               jobTitle = "HR";
+               getDepartmentId()
             } else if (jobDescription === "Administrator" ){
-               jobTitle = "Administrator"
+               jobTitle = "Admin";
+               getDepartmentId()
             } 
-       
-      console.log(jobTitle);
+          }
+          
+        var jobId;
+        function getDepartmentId() {
+          console.log(jobTitle)
+              const query = "SELECT id FROM department WHERE name = ? ";
+              connection.query(query, jobTitle , (err, res) => {
+                  if (err) throw err;  
+                  console.log(res[0].id) 
+                  jobId = res[0].id
+                  roleDataInput()
+                });
+              };
 
-      var jobId;
-function getDepartmentId() {
-      const query = "SELECT id FROM department WHERE name = ? ";
-      connection.query(query, jobTitle , (err, res) => {
-          if (err) throw err;  
-          console.log(res[0].id) 
-          jobId = res[0].id
-          roleDataInput()
-        });
-      }
-function roleDataInput() {
-        const roleInputs = [`${answer.title}`,`${parseInt(answer.salary)}`,`${jobId}`]
-        const query = "INSERT INTO role (title,salary,department_id) VALUES (?,?,?)";
-        connection.query(query, roleInputs , function(err, res) {
-          if (err) throw err;
-          runApp();
-        });
-      } 
-    getDepartmentId()
-  })
+            function roleDataInput() {
+                const roleInputs = [`${answer.title}`,`${parseInt(answer.salary)}`,`${jobId}`]
+                const query = "INSERT INTO role (title,salary,department_id) VALUES (?,?,?)";
+                connection.query(query, roleInputs , function(err, res) {
+                  if (err) throw err;
+                  console.log(" New Role has been Created")
+                  runApp();
+                });
+              }; 
+
+              getJobDescription()
+    
+  });
 }
 
 
@@ -179,10 +191,12 @@ const addEmployee = () => {
 
   connection.query("SELECT title FROM role", function(err, res) {
     if (err) throw err;
+    
     var roles = [];
     for (var i = 0; i <res.length; i++) {
     roles.push(res[i].title);
     }
+
     inquirer
     .prompt([{
           name: "firstName",
@@ -207,7 +221,7 @@ const addEmployee = () => {
 
     var roleId;
     // var mangerId;
-
+    var job = answer.role
     function getRoleID() {
           const query = "SELECT id FROM role WHERE title = ? ";
           connection.query(query, job , (err, res) => {
@@ -225,36 +239,42 @@ const addEmployee = () => {
           const query = "INSERT INTO employee (first_name,last_name,role_id,manager_id) VALUES (?,?,?,?)";
           connection.query(query, roleInputs , function(err, res) {
             if (err) throw err;
+            console.log(" New Employee has been Added")
             runApp();
           });
           } 
           getRoleID()
-  })
-
+    });
   });
-
 }
 
 
 const viewDepartment = () => {
   connection.query("SELECT * FROM department", function(err, res) {
     if (err) throw err;
-  console.table(res);
- runApp();
+    const array = res
+    const transformed = array.reduce((acc, {id, ...x}) => { acc[id] = x; return acc}, {})
+    console.table(transformed);
+  // console.table(res);
+
+  runApp();
   });
 }
 
 const viewRoles = () => {
   connection.query("SELECT * FROM role", function(err, res) {
     if (err) throw err;
-  console.table(res);
- runApp();
+    const array = res;
+    const transformed = array.reduce((acc, {id, ...x}) => { acc[id] = x; return acc}, {})
+    console.table(transformed);
+  // console.table(res);
+  runApp();
   });
 }
 
 const viewEmplyees = () => {
 
-  var query = "SELECT employee.first_name, employee.last_name, role.title, department.name, role.salary ";
+  var query = "SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name, role.salary ";
   query += "FROM employee INNER JOIN role ON (employee.role_id = role.id) INNER JOIN department ON (role.department_id = department.id) ";
   query += "ORDER BY employee.id";
 
@@ -262,43 +282,47 @@ const viewEmplyees = () => {
 
   connection.query(query, function(err, res) {
     if (err) throw err;
-  console.table(res);
- runApp();
+    const array = res;
+    const transformed = array.reduce((acc, {id, ...x}) => { acc[id] = x; return acc}, {})
+    console.table(transformed);
+  // console.table(res);
+  
+  runApp();
   });
 }
 
 const updateRoles = () => {
-    connection.query("SELECT first_name, last_name FROM employee", function(err, res) {
-      if (err) throw err;
-      var employees = [];
-      for (var i = 0; i <res.length; i++) {
-        const firstNames = res[i].first_name;
-        const lastName = res[i].last_name;
-        employees.push(firstNames + "," + lastName);
+  connection.query("SELECT first_name, last_name FROM employee", function(err, res) {
+    if (err) throw err;
+    var employees = [];
+    for (var i = 0; i <res.length; i++) {
+      const firstNames = res[i].first_name;
+      const lastName = res[i].last_name;
+      employees.push(firstNames + "," + lastName);
       }
 
-    connection.query("SELECT title FROM role", function(err, res2) {
-      if (err) throw err;
-      var roles = [];
-      for (var i = 0; i <res2.length; i++) {
-      roles.push(res2[i].title);
-      }
+  connection.query("SELECT title FROM role", function(err, res2) {
+    if (err) throw err;
+    var roles = [];
+    for (var i = 0; i <res2.length; i++) {
+    roles.push(res2[i].title);
+    }
 
 
     inquirer
-    .prompt([{
-          name: "roleChangeEmp",
+      .prompt([{
+            name: "roleChangeEmp",
+            type: "list",
+            message: "Witch Employee's Role Do you need to update ?",
+            choices: employees
+        },{
+          name: "role",
           type: "list",
-          message: "Witch Employee's Role Do you need to update ?",
-          choices: employees
-      },{
-        name: "role",
-        type: "list",
-        message: "what is his/her new Role?",
-        choices: roles
-      }
-      
-    ])
+          message: "what is his/her new Role?",
+          choices: roles
+        }
+        
+      ])
     .then(function(answer) {
       const job = answer.role
       const selectedEmp = (answer.roleChangeEmp).split(",");
@@ -318,7 +342,7 @@ const updateRoles = () => {
                   runApp();
                 });
                 runApp();
-                };
+              };
             newRole()
         });
       }   
