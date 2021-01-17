@@ -5,13 +5,15 @@
 
 # About This Project
 
-Build a command-line application that at a minimum allows the user to:
+Build a command-line application that allows the user to:
 
   * Add departments, roles, employees
 
   * View departments, roles, employees
 
   * Update employee roles
+
+  * Update departments, roles, employees
 
 
 # Built with
@@ -29,7 +31,10 @@ Build a command-line application that at a minimum allows the user to:
     4 - Push to the Branch ( git push origin YourBranch)
     5 - Open a Pull Request 
 
-
+# Setup for Local Machine
+1. Create database: employeeDB
+2. Execute npm install
+3. Run application using node
 
 # License 
     Distributed under the MIT License.
